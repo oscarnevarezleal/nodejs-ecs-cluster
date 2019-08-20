@@ -1,0 +1,899 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "This template create a Load balanced Auto scaling group for a NodeJs Application",
+  "Parameters": {
+    "InstanceType": {
+      "Description": "WebServer EC2 instance type",
+      "Type": "String",
+      "Default": "t2.small",
+      "AllowedValues": [
+        "t1.micro",
+        "t2.nano",
+        "t2.micro",
+        "t2.small",
+        "t2.medium",
+        "t2.large",
+        "m1.small",
+        "m1.medium",
+        "m1.large",
+        "m1.xlarge",
+        "m2.xlarge",
+        "m2.2xlarge",
+        "m2.4xlarge",
+        "m3.medium",
+        "m3.large",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "m4.large",
+        "m4.xlarge",
+        "m4.2xlarge",
+        "m4.4xlarge",
+        "m4.10xlarge",
+        "c1.medium",
+        "c1.xlarge",
+        "c3.large",
+        "c3.xlarge",
+        "c3.2xlarge",
+        "c3.4xlarge",
+        "c3.8xlarge",
+        "c4.large",
+        "c4.xlarge",
+        "c4.2xlarge",
+        "c4.4xlarge",
+        "c4.8xlarge",
+        "g2.2xlarge",
+        "g2.8xlarge",
+        "r3.large",
+        "r3.xlarge",
+        "r3.2xlarge",
+        "r3.4xlarge",
+        "r3.8xlarge",
+        "i2.xlarge",
+        "i2.2xlarge",
+        "i2.4xlarge",
+        "i2.8xlarge",
+        "d2.xlarge",
+        "d2.2xlarge",
+        "d2.4xlarge",
+        "d2.8xlarge",
+        "hi1.4xlarge",
+        "hs1.8xlarge",
+        "cr1.8xlarge",
+        "cc2.8xlarge",
+        "cg1.4xlarge"
+      ],
+      "ConstraintDescription": "must be a valid EC2 instance type."
+    },
+    "VpcId": {
+      "Description": "VPCId of Virtual Private Cloud (VPC)..",
+      "Type": "AWS::EC2::VPC::Id"
+    },
+    "SubnetId": {
+      "Description": "Subnet IDs",
+      "Type": "List<AWS::EC2::Subnet::Id>"
+    },
+    "InstanceKeyName": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Description": "The name of the private key file to use for SSH/RDP access.  You shouldn't need to do any SSH access, but just in case."
+    }
+  },
+  "Mappings": {
+    "AWSInstanceType2Arch": {
+      "t1.micro": {
+        "Arch": "HVM64"
+      },
+      "t2.nano": {
+        "Arch": "HVM64"
+      },
+      "t2.micro": {
+        "Arch": "HVM64"
+      },
+      "t2.small": {
+        "Arch": "HVM64"
+      },
+      "t2.medium": {
+        "Arch": "HVM64"
+      },
+      "t2.large": {
+        "Arch": "HVM64"
+      },
+      "m1.small": {
+        "Arch": "HVM64"
+      },
+      "m1.medium": {
+        "Arch": "HVM64"
+      },
+      "m1.large": {
+        "Arch": "HVM64"
+      },
+      "m1.xlarge": {
+        "Arch": "HVM64"
+      },
+      "m2.xlarge": {
+        "Arch": "HVM64"
+      },
+      "m2.2xlarge": {
+        "Arch": "HVM64"
+      },
+      "m2.4xlarge": {
+        "Arch": "HVM64"
+      },
+      "m3.medium": {
+        "Arch": "HVM64"
+      },
+      "m3.large": {
+        "Arch": "HVM64"
+      },
+      "m3.xlarge": {
+        "Arch": "HVM64"
+      },
+      "m3.2xlarge": {
+        "Arch": "HVM64"
+      },
+      "m4.large": {
+        "Arch": "HVM64"
+      },
+      "m4.xlarge": {
+        "Arch": "HVM64"
+      },
+      "m4.2xlarge": {
+        "Arch": "HVM64"
+      },
+      "m4.4xlarge": {
+        "Arch": "HVM64"
+      },
+      "m4.10xlarge": {
+        "Arch": "HVM64"
+      },
+      "c1.medium": {
+        "Arch": "HVM64"
+      },
+      "c1.xlarge": {
+        "Arch": "HVM64"
+      },
+      "c3.large": {
+        "Arch": "HVM64"
+      },
+      "c3.xlarge": {
+        "Arch": "HVM64"
+      },
+      "c3.2xlarge": {
+        "Arch": "HVM64"
+      },
+      "c3.4xlarge": {
+        "Arch": "HVM64"
+      },
+      "c3.8xlarge": {
+        "Arch": "HVM64"
+      },
+      "c4.large": {
+        "Arch": "HVM64"
+      },
+      "c4.xlarge": {
+        "Arch": "HVM64"
+      },
+      "c4.2xlarge": {
+        "Arch": "HVM64"
+      },
+      "c4.4xlarge": {
+        "Arch": "HVM64"
+      },
+      "c4.8xlarge": {
+        "Arch": "HVM64"
+      },
+      "g2.2xlarge": {
+        "Arch": "HVMG2"
+      },
+      "g2.8xlarge": {
+        "Arch": "HVMG2"
+      },
+      "r3.large": {
+        "Arch": "HVM64"
+      },
+      "r3.xlarge": {
+        "Arch": "HVM64"
+      },
+      "r3.2xlarge": {
+        "Arch": "HVM64"
+      },
+      "r3.4xlarge": {
+        "Arch": "HVM64"
+      },
+      "r3.8xlarge": {
+        "Arch": "HVM64"
+      },
+      "i2.xlarge": {
+        "Arch": "HVM64"
+      },
+      "i2.2xlarge": {
+        "Arch": "HVM64"
+      },
+      "i2.4xlarge": {
+        "Arch": "HVM64"
+      },
+      "i2.8xlarge": {
+        "Arch": "HVM64"
+      },
+      "d2.xlarge": {
+        "Arch": "HVM64"
+      },
+      "d2.2xlarge": {
+        "Arch": "HVM64"
+      },
+      "d2.4xlarge": {
+        "Arch": "HVM64"
+      },
+      "d2.8xlarge": {
+        "Arch": "HVM64"
+      },
+      "hi1.4xlarge": {
+        "Arch": "HVM64"
+      },
+      "hs1.8xlarge": {
+        "Arch": "HVM64"
+      },
+      "cr1.8xlarge": {
+        "Arch": "HVM64"
+      },
+      "cc2.8xlarge": {
+        "Arch": "HVM64"
+      }
+    },
+    "AWSInstanceType2NATArch": {
+      "t1.micro": {
+        "Arch": "NATHVM64"
+      },
+      "t2.nano": {
+        "Arch": "NATHVM64"
+      },
+      "t2.micro": {
+        "Arch": "NATHVM64"
+      },
+      "t2.small": {
+        "Arch": "NATHVM64"
+      },
+      "t2.medium": {
+        "Arch": "NATHVM64"
+      },
+      "t2.large": {
+        "Arch": "NATHVM64"
+      },
+      "m1.small": {
+        "Arch": "NATHVM64"
+      },
+      "m1.medium": {
+        "Arch": "NATHVM64"
+      },
+      "m1.large": {
+        "Arch": "NATHVM64"
+      },
+      "m1.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "m2.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "m2.2xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "m2.4xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "m3.medium": {
+        "Arch": "NATHVM64"
+      },
+      "m3.large": {
+        "Arch": "NATHVM64"
+      },
+      "m3.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "m3.2xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "m4.large": {
+        "Arch": "NATHVM64"
+      },
+      "m4.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "m4.2xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "m4.4xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "m4.10xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "c1.medium": {
+        "Arch": "NATHVM64"
+      },
+      "c1.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "c3.large": {
+        "Arch": "NATHVM64"
+      },
+      "c3.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "c3.2xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "c3.4xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "c3.8xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "c4.large": {
+        "Arch": "NATHVM64"
+      },
+      "c4.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "c4.2xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "c4.4xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "c4.8xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "g2.2xlarge": {
+        "Arch": "NATHVMG2"
+      },
+      "g2.8xlarge": {
+        "Arch": "NATHVMG2"
+      },
+      "r3.large": {
+        "Arch": "NATHVM64"
+      },
+      "r3.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "r3.2xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "r3.4xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "r3.8xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "i2.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "i2.2xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "i2.4xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "i2.8xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "d2.xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "d2.2xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "d2.4xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "d2.8xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "hi1.4xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "hs1.8xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "cr1.8xlarge": {
+        "Arch": "NATHVM64"
+      },
+      "cc2.8xlarge": {
+        "Arch": "NATHVM64"
+      }
+    },
+    "AWSRegionArch2AMI": {
+      "us-east-1": {
+        "HVM64": "ami-0ff8a91507f77f867",
+        "HVMG2": "ami-0a584ac55a7631c0c"
+      },
+      "us-west-2": {
+        "HVM64": "ami-a0cfeed8",
+        "HVMG2": "ami-0e09505bc235aa82d"
+      },
+      "us-west-1": {
+        "HVM64": "ami-0bdb828fd58c52235",
+        "HVMG2": "ami-066ee5fd4a9ef77f1"
+      },
+      "eu-west-1": {
+        "HVM64": "ami-047bb4163c506cd98",
+        "HVMG2": "ami-0a7c483d527806435"
+      },
+      "eu-west-2": {
+        "HVM64": "ami-f976839e",
+        "HVMG2": "NOT_SUPPORTED"
+      },
+      "eu-west-3": {
+        "HVM64": "ami-0ebc281c20e89ba4b",
+        "HVMG2": "NOT_SUPPORTED"
+      },
+      "eu-central-1": {
+        "HVM64": "ami-0233214e13e500f77",
+        "HVMG2": "ami-06223d46a6d0661c7"
+      },
+      "ap-northeast-1": {
+        "HVM64": "ami-06cd52961ce9f0d85",
+        "HVMG2": "ami-053cdd503598e4a9d"
+      },
+      "ap-northeast-2": {
+        "HVM64": "ami-0a10b2721688ce9d2",
+        "HVMG2": "NOT_SUPPORTED"
+      },
+      "ap-northeast-3": {
+        "HVM64": "ami-0d98120a9fb693f07",
+        "HVMG2": "NOT_SUPPORTED"
+      },
+      "ap-southeast-1": {
+        "HVM64": "ami-08569b978cc4dfa10",
+        "HVMG2": "ami-0be9df32ae9f92309"
+      },
+      "ap-southeast-2": {
+        "HVM64": "ami-09b42976632b27e9b",
+        "HVMG2": "ami-0a9ce9fecc3d1daf8"
+      },
+      "ap-south-1": {
+        "HVM64": "ami-0912f71e06545ad88",
+        "HVMG2": "ami-097b15e89dbdcfcf4"
+      },
+      "us-east-2": {
+        "HVM64": "ami-0b59bfac6be064b78",
+        "HVMG2": "NOT_SUPPORTED"
+      },
+      "ca-central-1": {
+        "HVM64": "ami-0b18956f",
+        "HVMG2": "NOT_SUPPORTED"
+      },
+      "sa-east-1": {
+        "HVM64": "ami-07b14488da8ea02a0",
+        "HVMG2": "NOT_SUPPORTED"
+      },
+      "cn-north-1": {
+        "HVM64": "ami-0a4eaf6c4454eda75",
+        "HVMG2": "NOT_SUPPORTED"
+      },
+      "cn-northwest-1": {
+        "HVM64": "ami-6b6a7d09",
+        "HVMG2": "NOT_SUPPORTED"
+      }
+    }
+  },
+  "Resources": {
+    "WebServerGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": {
+          "Fn::GetAZs": ""
+        },
+        "LaunchConfigurationName": {
+          "Ref": "LaunchConfig"
+        },
+        "MinSize": "1",
+        "MaxSize": "3",
+        "LoadBalancerNames": [
+          {
+            "Ref": "ElasticLoadBalancer"
+          }
+        ]
+      },
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Timeout": "PT15M",
+          "Count": "1"
+        }
+      },
+      "UpdatePolicy": {
+        "AutoScalingRollingUpdate": {
+          "MinInstancesInService": "1",
+          "MaxBatchSize": "1",
+          "PauseTime": "PT15M",
+          "WaitOnResourceSignals": "true"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "b76983a6-fbc6-4c5d-9966-8fdea1e2582a"
+        }
+      }
+    },
+    "LaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Metadata": {
+        "Comment": "Install a simple application",
+        "AWS::CloudFormation::Init": {
+          "config": {
+            "packages": {
+              "yum": {
+                "httpd": []
+              }
+            },
+            "files": {
+              "/var/www/html/index.html": {
+                "content": {
+                  "Fn::Join": [
+                    "\n",
+                    [
+                      "",
+                      "<h1>Hello Big Bright World</h1>"
+                    ]
+                  ]
+                },
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              },
+              "/var/www/html/package.json": {
+                "content": {
+                  "Fn::Join": [
+                    "\n",
+                    [
+                      "",
+                      "{\n  \"name\": \"nodejs-ecs-cluster\",\n  \"version\": \"1.0.0\",\n  \"description\": \"\",\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"test\": \"echo \\\"Error: no test specified\\\" && exit 1\"\n  },\n  \"author\": \"fu.wire@gmail.com\",\n  \"license\": \"ISC\",\n  \"dependencies\": {\n    \"express\": \"^4.17.1\"\n  }\n}\n"
+                    ]
+                  ]
+                },
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              },
+              "/var/www/html/app.js": {
+                "content": {
+                  "Fn::Join": [
+                    "\n",
+                    [
+                      "",
+                      "const express = require('express')\n",
+                      "const app = express()\n",
+                      "const serverName = process.env.SERVER_NAME || 'UNIDENTIFIED'\n",
+                      "const port = process.env.PORT || 3000 \n",
+                      "app.get('/', (req, res) => res.send(",
+                      "    JSON.stringify(",
+                      "        Object.assign(req.params, req.query, {serverName}),",
+                      "        null, 2)",
+                      "    )",
+                      ")",
+                      "app.listen(port, () => console.log(`Example app listening on port ${port}!`))",
+                      "\n"
+                    ]
+                  ]
+                },
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              },
+              "/etc/nginx/nginx.conf": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "server {\n",
+                      "    listen 8080;\n",
+                      "    server_name ",
+                      {
+                        "Fn::GetAtt": [
+                          "ElasticLoadBalancer",
+                          "DNSName"
+                        ]
+                      },
+                      "; \n",
+                      "    location / {\n",
+                      "        proxy_pass http://0.0.0.0:3000;\n",
+                      "        proxy_http_version 1.1;\n",
+                      "        proxy_set_header Upgrade $http_upgrade;\n",
+                      "        proxy_set_header Connection 'upgrade';\n",
+                      "        proxy_set_header Host $host;\n",
+                      "        proxy_cache_bypass $http_upgrade;\n",
+                      "   \n}",
+                      "\n}"
+                    ]
+                  ]
+                }
+              },
+              "/etc/cfn/cfn-hup.conf": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "[main]\n",
+                      "stack=",
+                      {
+                        "Ref": "AWS::StackId"
+                      },
+                      "\n",
+                      "region=",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "\n"
+                    ]
+                  ]
+                },
+                "mode": "000400",
+                "owner": "root",
+                "group": "root"
+              },
+              "/usr/lib/systemd/system/nodeapp.service": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "[Unit]\n",
+                      "Description=NodeApp\n",
+                      "[Service]\n",
+                      "Type=forking\n",
+                      "ExecStart=node /var/www/html/app.js\n",
+                      "[Install]\n",
+                      "WantedBy=multi-user.target\n"
+                    ]
+                  ]
+                },
+                "mode": "000400",
+                "owner": "root",
+                "group": "root"
+              },
+              "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "[cfn-auto-reloader-hook]\n",
+                      "triggers=post.update\n",
+                      "path=Resources.LaunchConfig.Metadata.AWS::CloudFormation::Init\n",
+                      "action=/opt/aws/bin/cfn-init -v ",
+                      "         --stack ",
+                      {
+                        "Ref": "AWS::StackName"
+                      },
+                      "         --resource LaunchConfig ",
+                      "         --region ",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "\n",
+                      "runas=root\n"
+                    ]
+                  ]
+                }
+              }
+            },
+            "services": {
+              "sysvinit": {
+                "httpd": {
+                  "enabled": "true",
+                  "ensureRunning": "true"
+                },
+                "nginx": {
+                  "enabled": "false",
+                  "ensureRunning": "false"
+                },
+                "cfn-hup": {
+                  "enabled": "true",
+                  "ensureRunning": "true",
+                  "files": [
+                    "/etc/cfn/cfn-hup.conf",
+                    "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "AWS::CloudFormation::Designer": {
+          "id": "3279cf9c-d62f-4630-96ee-e0f050294575"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "AWSRegionArch2AMI",
+            {
+              "Ref": "AWS::Region"
+            },
+            {
+              "Fn::FindInMap": [
+                "AWSInstanceType2Arch",
+                {
+                  "Ref": "InstanceType"
+                },
+                "Arch"
+              ]
+            }
+          ]
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "InstanceSecurityGroup"
+          }
+        ],
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "KeyName": {
+          "Ref": "InstanceKeyName"
+        },
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -xe\n",
+                "yum update -y \n",
+                "curl -sL https://rpm.nodesource.com/setup_10.x | sudo -E bash - \n",
+                "yum install -y nodejs\n",
+                "yum install -y epel-release\n",
+                "yum -y install nginx\n",
+                "service nodeapp start\n",
+                "yum update -y aws-cfn-bootstrap\n",
+                "/opt/aws/bin/cfn-init -v ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource LaunchConfig ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n",
+                "/opt/aws/bin/cfn-signal -e $? ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource WebServerGroup ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ""
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "WebServerScaleUpPolicy": {
+      "Type": "AWS::AutoScaling::ScalingPolicy",
+      "Properties": {
+        "AdjustmentType": "ChangeInCapacity",
+        "AutoScalingGroupName": {
+          "Ref": "WebServerGroup"
+        },
+        "Cooldown": "60",
+        "ScalingAdjustment": "1"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "3186d317-cf90-4b32-8b65-b202b9bf8d35"
+        }
+      }
+    },
+    "WebServerScaleDownPolicy": {
+      "Type": "AWS::AutoScaling::ScalingPolicy",
+      "Properties": {
+        "AdjustmentType": "ChangeInCapacity",
+        "AutoScalingGroupName": {
+          "Ref": "WebServerGroup"
+        },
+        "Cooldown": "60",
+        "ScalingAdjustment": "-1"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "bdac36d7-0010-451e-b2c1-5761e3877f22"
+        }
+      }
+    },
+    "ElasticLoadBalancer": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+        "AvailabilityZones": {
+          "Fn::GetAZs": ""
+        },
+        "CrossZone": "true",
+        "Listeners": [
+          {
+            "LoadBalancerPort": "80",
+            "InstancePort": "80",
+            "Protocol": "HTTP"
+          }
+        ],
+        "HealthCheck": {
+          "Target": "HTTP:80/",
+          "HealthyThreshold": "3",
+          "UnhealthyThreshold": "5",
+          "Interval": "30",
+          "Timeout": "5"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "96efe052-7feb-4a24-b532-defdc3abf573"
+        }
+      }
+    },
+    "InstanceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enable SSH access and HTTP from the load balancer only",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "SourceSecurityGroupOwnerId": {
+              "Fn::GetAtt": [
+                "ElasticLoadBalancer",
+                "SourceSecurityGroup.OwnerAlias"
+              ]
+            },
+            "SourceSecurityGroupName": {
+              "Fn::GetAtt": [
+                "ElasticLoadBalancer",
+                "SourceSecurityGroup.GroupName"
+              ]
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "8080",
+            "ToPort": "8080",
+            "SourceSecurityGroupOwnerId": {
+              "Fn::GetAtt": [
+                "ElasticLoadBalancer",
+                "SourceSecurityGroup.OwnerAlias"
+              ]
+            },
+            "SourceSecurityGroupName": {
+              "Fn::GetAtt": [
+                "ElasticLoadBalancer",
+                "SourceSecurityGroup.GroupName"
+              ]
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "ac86f1e6-57a9-429c-9406-b836d8669e74"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "URL": {
+      "Description": "The Load balancer URL",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "http://",
+            {
+              "Fn::GetAtt": [
+                "ElasticLoadBalancer",
+                "DNSName"
+              ]
+            }
+          ]
+        ]
+      }
+    }
+  }
+}
